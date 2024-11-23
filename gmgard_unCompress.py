@@ -43,6 +43,8 @@ G_PasswordList = [
     ['夢之行蹤249', "utf8"],
     ['xiaoa685', "utf8"],
     ['cc', "utf8"],
+    ['LSFS', "utf8"],
+    ['玖秀拉', "utf8"],
 ]
 
 G_TempDirPath = os.path.join(pyfilePath, "temp")
@@ -87,7 +89,7 @@ class UnCompress:
     # RAR解压缩
     def unrar_file(self):
         print("unrar_file")
-        cmdStr = 'UnRAR.exe x "{}" {} -p{}'.format(self.file_path, self.output_path, self.password)
+        cmdStr = 'UnRAR.exe x "{}" {} -p{} -inul -y'.format(self.file_path, self.output_path, self.password)
         ret = os.system(cmdStr)
         if ret == 0:
             return True
@@ -96,7 +98,7 @@ class UnCompress:
 
     def unrar_file_WinRAR(self):
         print("unrar_file")
-        cmdStr = 'WinRAR.exe x "{}" {} -o+ -p{} -inul -ibck'.format(self.file_path, self.output_path, self.password)
+        cmdStr = 'WinRAR.exe x "{}" {} -o+ -p{} -inul -ibck -y'.format(self.file_path, self.output_path, self.password)
         os.system(cmdStr)
         if not is_allEmptyDir(self.output_path):
             return True
@@ -262,43 +264,50 @@ def dealFileName(str):
     return str.replace('?', "_").replace(';', '_').replace(' ', '_').replace('・', '_').replace('♥', '_')
 
 def needDirReanme(dirName):
-    return dirName.find('?') >= 0 or dirName.find(';') >= 0 or dirName.find(' ') or dirName.find('♥') >= 0 or dirName.find('・') >= 0
+    return True
+    # return dirName.find('?') >= 0 or dirName.find(';') >= 0 or dirName.find(' ') or dirName.find('♥') >= 0 or dirName.find('・') >= 0
+
+def renameDir(dirParentPath, dirName, index):
+    dirPath = os.path.join(dirParentPath, dirName)
+    dirNameList = os.listdir(dirPath)
+    for childDir in dirNameList:
+        item_path = os.path.join(dirPath, childDir)
+        if os.path.isdir(item_path):
+            index = renameDir(dirPath, childDir, index+1)
+
+    dirNmaeIndex = index + 1
+    change_name = 'rename_%d'%dirNmaeIndex
+    new_name = os.path.join(dirParentPath, change_name)
+    if not os.path.exists(new_name):
+        shutil.move(dirPath, new_name)
+    return dirNmaeIndex
 
 if __name__ == "__main__":
     if not os.path.exists(G_OutDirPath):
         os.makedirs(G_OutDirPath)
 
     _doResourcesDir()
-    dirNmaeIndex = 0
-    for root, dirs, files in os.walk(G_OutDirPath):
-        for name in dirs:
-            dirPath = os.path.join(root, name)
-            if needDirReanme(name) >= 0:
-                dirNmaeIndex = dirNmaeIndex + 1
-                change_name = 'rename_%d'%dirNmaeIndex
-                new_name = os.path.join(root, change_name)
-                if os.path.exists(new_name):
-                    continue
-                os.rename(dirPath, new_name)
+    renameDir(G_OutDirPath, "gmgard.us", 0)
+    # dirNmaeIndex = 0
+    # for count in range(0, 10):
+    #     # 改了文件夹名字会导致后续的路径失效, 直接来个10次应该ok了
+    #     for root, dirs, files in os.walk(G_PngOutDirPath):
+    #         for name in dirs:
+    #             dirPath = os.path.join(root, name)
+    #             if needDirReanme(name) >= 0:
+    #                 dirNmaeIndex = dirNmaeIndex + 1
+    #                 change_name = 'rename_%d'%dirNmaeIndex
+    #                 new_name = os.path.join(root, change_name)
+    #                 if os.path.exists(new_name):
+    #                     continue
+    #                 os.rename(dirPath, new_name)
 
-    for root, dirs, files in os.walk(G_OutDirPath):
-        for name in files:
-            filePath = os.path.join(root, name)
-            change_name = dealFileName(name)
-            new_name = os.path.join(root, change_name)
-            if os.path.exists(new_name):
-                continue
-            os.rename(filePath, new_name)
-        # for name in dirs:
-        #     filePath = os.path.join(root, name)
-        #     change_name = dealFileName(name)
-        #     new_name = os.path.join(root, change_name)
-        #     if os.path.exists(new_name):
-        #         continue
-        #     os.rename(filePath, new_name)
-
-
-
-
-
+    # for root, dirs, files in os.walk(G_OutDirPath):
+    #     for name in files:
+    #         filePath = os.path.join(root, name)
+    #         change_name = dealFileName(name)
+    #         new_name = os.path.join(root, change_name)
+    #         if os.path.exists(new_name):
+    #             continue
+    #         os.rename(filePath, new_name)
 
